@@ -9,14 +9,17 @@ function Vault(code, elem_id) {
     let isSafe = false,
         correctCode = code,
         allButtons = $(".buttons>button"),
-        enteredCode = [];
+        enteredCode = [],
+        countCorrect = 0,
+        countWrong = 0;
+    const player = new Audio();
 
     /**
      * This tests the code
      */
       this.testCode = function () {
-        if(typeof code !== "object" && code.length !== 3) {
-            alert("Code is not an array");
+        if(typeof code !== "object" || (code.length > 3 || code.length < 3) ) {
+            alert("Code is not an array or has les then 3 numbers");
             isSafe = false;
         }
         else {
@@ -38,7 +41,7 @@ function Vault(code, elem_id) {
                 <div id="${elem_id}-red-light" class="light red"></div>
                 <div class="clearfix"></div>
                 
-                <h3 id="${elem_id}-enteredCode" class="entered-code">---</h3>
+                <h3 id="${elem_id}-enteredCode" class="entered-code">${"-".repeat(code.length)}</h3>
                 <div class="littleHack">
                     <p id="${elem_id}-notif" class="vault-notif">&nbsp;</p>
                     <div class="vault-buttons">
@@ -53,6 +56,7 @@ function Vault(code, elem_id) {
                         <button onclick="${elem_id}.buttonPress(this)" value="9">9</button>
                         <button onclick="${elem_id}.buttonPress(this)" class="null-btn" value="0">0</button>
                     </div>
+                    <p id="${elem_id}-stats" class="vault-notif">Times correct: 0 &middot; Times incorrect: 0</p>
                 </div>
             </div>
         `;
@@ -70,22 +74,30 @@ function Vault(code, elem_id) {
         }
         let num = button.value;
         enteredCode.push(num);
-        _(elem_id + "-enteredCode").innerHTML = (enteredCode.join("") + '---').substring(0, 3);
+        _(elem_id + "-enteredCode").innerHTML = (enteredCode.join("") + ("-".repeat(code.length)) ).substring(0, 3);
         if(enteredCode.length === 3) {
             isSafe = false;
             // noinspection EqualityComparisonWithCoercionJS
             let flag = enteredCode[0] == correctCode[0] && enteredCode[1] == correctCode[1] && enteredCode[2] == correctCode[2];
             if(flag) {
+                player.pause();
+                player.src = "audio/correct.wav";
+                player.play();
                 blink("#" + elem_id + "-green-light", 9, 200);
                 _(elem_id + "-notif").innerHTML = "Code is correct";
+                countCorrect++;
             }
-            else {
+            else {player.pause();
+                player.src = "audio/fail.mp3";
+                player.play();
                 blink("#" + elem_id + "-red-light", 9, 200);
                 _(elem_id + "-notif").innerHTML = "Code is incorrect";
+                countWrong++;
             }
+            _(elem_id + "-stats").innerHTML = `Times correct: ${countCorrect} &middot; Times incorrect: ${countWrong}`;
             setTimeout(() => {
                 isSafe = true;
-                _(elem_id + "-enteredCode").innerHTML = "---";
+                _(elem_id + "-enteredCode").innerHTML = "-".repeat(code.length);
                 _(elem_id + "-notif").innerHTML = "&nbsp;";
             }, 3600);
             enteredCode.splice(0, enteredCode.length);
